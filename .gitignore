@@ -1,2 +1,3 @@
 *.har
 output/
+__pycache__/
