@@ -2,6 +2,10 @@
 import json
 
 
+class HarParsingError(BaseException):
+    pass
+
+
 class SimpleHarType:
 
     def __init__(self, data):
@@ -183,7 +187,10 @@ class Har:
         with open(filename, 'rb') as har_file:
             _data = json.load(har_file)
 
-        self._parse(_data["log"])
+        try:
+            self._parse(_data["log"])
+        except Exception:
+            raise HarParsingError
 
     def _parse(self, data):
         self.version = data["version"]
