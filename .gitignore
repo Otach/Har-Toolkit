@@ -1,3 +1,5 @@
 *.har
 output/
 __pycache__/
+dist/
+**.egg_info/**
