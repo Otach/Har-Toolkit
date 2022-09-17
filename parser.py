@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 import json
+from base64 import b64decode
+from urllib.parse import urlparse
 
 
 class HarParsingError(BaseException):
@@ -35,7 +37,7 @@ class Page:
         self.comment = data["comment"] if "comment" in data.keys() else None
 
     def __str__(self):
-        return f"Page\n\t{self.startedDateTime=}\n\t{self.id=}\n\t{self.title=}\n\t{self.pageTimings=}\n\t{self.comment=}"
+        return f"""Page\n\t{self.startedDateTime=}\n\t{self.id=}\n\t{self.title=}\n\t{self.pageTimings=}\n\t{self.comment=}"""
 
 
 class PageTimings:
@@ -61,6 +63,7 @@ class Cache:
 class Entry:
 
     def __init__(self, data):
+
         self.pageref = data["pageref"] if "pageref" in data.keys() else None
         self.startedDateTime = data["startedDateTime"]
         self.time = data["time"]
@@ -150,6 +153,14 @@ class Content:
         self.encoding = data["encoding"] if "encoding" in data.keys() else None
         self.comment = data["comment"] if "comment" in data.keys() else None
 
+    def decode(self):
+        if self.encoding == "base64":
+            self.text = b64decode(self.text)
+        else:
+            # Nothing to decode
+            pass
+        return self
+
 
 class PostData:
 
@@ -204,3 +215,23 @@ class Har:
 
     def __str__(self):
         return f"Version\n\t{self.version}\n{self.creator}\n{self.browser}\nPages\n\t{len(self.pages)} pages\nEntries\n\t{len(self.entries)} entries\nComment\n\t{self.comment}"
+
+    def extract_images(self):
+        """Looks through the entries and returns an array of image data.
+
+        The image data is a dictionary with two entries:
+            'filename' - The name of the file from the request url
+            'data' - The Content object of the Response for an image request
+        """
+
+        media = []
+        for entry in self.entries:
+            if (entry.response.content.mimeType is not None) and ("image/" in entry.response.content.mimeType) and (entry.response.content.text is not None):
+                content = entry.response.content.decode()
+                media.append({
+                    "filename": urlparse(entry.request.url).path.split("/")[-1],
+                    "data": content
+                })
+
+        return media
+
