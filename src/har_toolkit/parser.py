@@ -211,6 +211,13 @@ class Content(HarType):
         self.mimeType = data.get("mimeType")
         self.text = data.get("text")
         self.encoding = data.get("encoding")
+        self.charset = self._extract_charset()
+
+    def _extract_charset(self):
+        if "; charset=" in self.mimeType:
+            return self.mimeType.split("=")[-1]
+        else:
+            return None
 
     def decode(self):
         if self.encoding == "base64":
