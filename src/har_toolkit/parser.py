@@ -25,76 +25,121 @@ class HarParsingError(BaseException):
     pass
 
 
-class SimpleHarType:
+class HarType:
 
     def __init__(self, data):
+        self.comment = data.get("comment", "")
+
+    def append_comment(self, msg):
+        if self.comment:  # Empty string
+            self.comment = msg
+        else:
+            self.comment += f"; {msg}"
+        return
+
+
+class VersionHarType(HarType):
+
+    def __init__(self, data):
+        super().__init__(data)
         self.name = data["name"]
         self.version = data["version"]
-        self.comment = data["comment"] if "comment" in data.keys() else None
 
     def __str__(self):
         return f"{type(self).__name__}\n\t{self.name=}\n\t{self.version=}\n\t{self.comment=}"
 
 
-class Creator(SimpleHarType):
-    pass
-
-
-class Browser(SimpleHarType):
-    pass
-
-
-class Page:
+class SimpleHarType(HarType):
 
     def __init__(self, data):
+        super().__init__(data)
+        self.name = data["name"]
+        self.value = data["value"]
+
+    def __str__(self):
+        return f"{type(self).__name__}\n\t{self.name=}\n\t{self.value=}\n\t{self.comment=}"
+
+
+class Creator(VersionHarType):
+    pass
+
+
+class Browser(VersionHarType):
+    pass
+
+
+class Page(HarType):
+
+    def __init__(self, data):
+        super().__init__(data)
         self.startedDateTime = data["startedDateTime"]
         self.id = data["id"]
         self.title = data["title"]
-        self.pageTimings = PageTimings(data["pageTimings"])
-        self.comment = data["comment"] if "comment" in data.keys() else None
+        self.pageTimings = PageTimings(data["pageTimings"]) if data["pageTimings"] != {} else None
 
     def __str__(self):
         return f"""Page\n\t{self.startedDateTime=}\n\t{self.id=}\n\t{self.title=}\n\t{self.pageTimings=}\n\t{self.comment=}"""
 
 
-class PageTimings:
+class PageTimings(HarType):
 
     def __init__(self, data):
-        self.onContentLoad = data["onContentLoad"] if "onContentLoad" in data.keys() else None
-        self.onLoad = data["onLoad"] if "onLoad" in data.keys() else None
-        self.comment = data["comment"] if "comment" in data.keys() else None
+        super().__init__(data)
+        self.onContentLoad = data.get("onContentLoad", -1)
+        self.onLoad = data.get("onLoad", -1)
 
 
-class Timings:
-
-    def __init__(self, data):
-        pass
-
-
-class Cache:
+class Timings(HarType):
 
     def __init__(self, data):
-        pass
+        super().__init__(data)
+        self.blocked = data.get("blocked", -1)
+        self.dns = data.get("dns", -1)
+        self.connect = data.get("connect", -1)
+        self.send = data["send"]
+        self.wait = data["wait"]
+        self.receive = data["receive"]
+        self.ssl = data.get("ssl", -1)
 
 
-class Entry:
+class CacheState(HarType):
 
     def __init__(self, data):
+        super().__init__(data)
+        self.expires = data.get("expires")
+        self.lastAccess = data["lastAccess"]
+        self.eTag = data["eTag"]
+        self.hitCount = data["hitCount"]
 
-        self.pageref = data["pageref"] if "pageref" in data.keys() else None
+
+class Cache(HarType):
+
+    def __init__(self, data):
+        super().__init__(data)
+        data_keys = data.keys()
+        self.beforeRequest = CacheState(data["beforeRequest"]) if "beforeRequest" in data_keys else None
+        self.afterRequest = CacheState(data["afterRequest"]) if "afterRequest" in data_keys else None
+
+
+class Entry(HarType):
+
+    def __init__(self, data):
+        super().__init__(data)
+        self.pageref = data.get("pageref")
         self.startedDateTime = data["startedDateTime"]
         self.time = data["time"]
         self.request = Request(data["request"])
         self.response = Response(data["response"])
-        self.timings = Timings(data["timings"])
-        self.serverIPAddress = data["serverIPAddress"] if "serverIPAddress" in data.keys() else None
-        self.connection = data["connection"] if "connection" in data.keys() else None
-        self.comment = data["comment"] if "comment" in data.keys() else None
+        self.cache = Cache(data["cache"]) if data["cache"] != {} else None
+        self.timings = Timings(data["timings"]) if data["timings"] != {} else None
+        self.serverIPAddress = data.get("serverIPAddress")
+        self.connection = data.get("connection")
 
 
-class Request:
+class Request(HarType):
 
     def __init__(self, data):
+        super().__init__(data)
         self.method = data["method"]
         self.url = data["url"]
         self.httpVersion = data["httpVersion"]
@@ -113,12 +158,12 @@ class Request:
         self.postData = PostData(data["postData"]) if "postData" in data.keys() else None
         self.headersSize = data["headersSize"]
         self.bodySize = data["bodySize"]
-        self.comment = data["comment"] if "comment" in data.keys() else None
 
 
-class Response:
+class Response(HarType):
 
     def __init__(self, data):
+        super().__init__(data)
         self.status = data["status"]
         self.statusText = data["statusText"]
         self.httpVersion = data["httpVersion"]
@@ -128,47 +173,49 @@ class Response:
         self.headers = []
         for header in data["headers"]:
             self.headers.append(Header(header))
-        self.content = Content(data["content"])
+        self.content = Content(data["content"]) if data["content"] != {} else None
         self.redirectURL = data["redirectURL"]
-        self.headersSize = data["headersSize"] if "headersSize" in data.keys() else None
+        self.headersSize = data.get("headersSize", -1)
         self.bodySize = data["bodySize"]
-        self.comment = data["comment"] if "comment" in data.keys() else None
 
 
-class Cookie:
-
-    def __init__(self, data):
-        self.name = data["name"]
-        self.value = data["value"]
-        self.path = data["path"] if "path" in data.keys() else None
-        self.domain = data["domain"] if "domain" in data.keys() else None
-        self.expires = data["expires"] if "expires" in data.keys() else None
-        self.httpOnly = data["httpOnly"] if "httpOnly" in data.keys() else None
-        self.secure = data["secure"] if "secure" in data.keys() else None
-        self.comment = data["comment"] if "comment" in data.keys() else None
-
-
-class Header:
+class Cookie(HarType):
 
     def __init__(self, data):
+        super().__init__(data)
         self.name = data["name"]
         self.value = data["value"]
-        self.comment = data["comment"] if "comment" in data.keys() else None
+        self.path = data.get("path")
+        self.domain = data.get("domain")
+        self.expires = data.get("expires")
+        self.httpOnly = data.get("httpOnly")
+        self.secure = data.get("secure")
+
+
+class Header(SimpleHarType):
+    pass
 
 
 class queryString(SimpleHarType):
     pass
 
 
-class Content:
+class Content(HarType):
 
     def __init__(self, data):
-        self.size = data["size"] if "size" in data.keys() else None
-        self.compression = data["compression"] if "compression" in data.keys() else None
-        self.mimeType = data["mimeType"] if "mimeType" in data.keys() else None
-        self.text = data["text"] if "text" in data.keys() else None
-        self.encoding = data["encoding"] if "encoding" in data.keys() else None
-        self.comment = data["comment"] if "comment" in data.keys() else None
+        super().__init__(data)
+        self.size = data.get("size")
+        self.compression = data.get("compression")
+        self.mimeType = data.get("mimeType")
+        self.text = data.get("text")
+        self.encoding = data.get("encoding")
+        self.charset = self._extract_charset()
+
+    def _extract_charset(self):
+        if "; charset=" in self.mimeType:
+            return self.mimeType.split("=")[-1]
+        else:
+            return None
 
     def decode(self):
         if self.encoding == "base64":
@@ -179,26 +226,26 @@ class Content:
         return self
 
 
-class PostData:
+class PostData(HarType):
 
     def __init__(self, data):
+        super().__init__(data)
         self.mimeType = data["mimeType"]
         self.params = []
         if "params" in data.keys():
             for param in data["params"]:
                 Params(param)
         self.text = data["text"] if "text" in data.keys() else None
-        self.comment = data["comment"] if "comment" in data.keys() else None
 
 
-class Params:
+class Params(HarType):
 
     def __init__(self, data):
-        self.name = data["name"] if "name" in data.keys() else None
-        self.value = data["value"] if "value" in data.keys() else None
-        self.fileName = data["fileName"] if "fileName" in data.keys() else None
-        self.contentType = data["contentType"] if "contentType" in data.keys() else None
-        self.comment = data["comment"] if "comment" in data.keys() else None
+        super().__init__(data)
+        self.name = data["name"]
+        self.value = data.get("value")
+        self.fileName = data.get("fileName")
+        self.contentType = data.get("contentType")
 
 
 class HarReader:
@@ -251,4 +298,3 @@ class HarReader:
                 })
 
         return media
-
