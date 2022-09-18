@@ -3,6 +3,7 @@ from .bases import HarType
 from .cookie import Cookie
 from .header import Header
 from .post_data import PostData
+from urllib3.parse import urlparse
 
 
 class Request(HarType):
@@ -27,3 +28,7 @@ class Request(HarType):
         self.postData = PostData(data["postData"]) if "postData" in data.keys() else None
         self.headersSize = data["headersSize"]
         self.bodySize = data["bodySize"]
+
+    def parse_url(self):
+        """Helper method to call urllib3.parse.urlparse on the request URL."""
+        return urlparse(self.url)

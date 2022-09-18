@@ -17,7 +17,6 @@
 
 
 import json
-from urllib.parse import urlparse
 from .har_objects import (
     Browser,
     Creator,
@@ -72,7 +71,7 @@ class HarReader:
             if (entry.response.content.mimeType is not None) and ("image/" in entry.response.content.mimeType) and (entry.response.content.text is not None):
                 content = entry.response.content.decode()
                 media.append({
-                    "filename": urlparse(entry.request.url).path.split("/")[-1],
+                    "filename": entry.request.parse_url().path.split("/")[-1],
                     "data": content
                 })
 
