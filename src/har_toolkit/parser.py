@@ -158,6 +158,7 @@ class Request(HarType):
         self.postData = PostData(data["postData"]) if "postData" in data.keys() else None
         self.headersSize = data["headersSize"]
         self.bodySize = data["bodySize"]
+        self.totalSize = self.headersSize + self.bodySize if self.headersSize != -1 else None
 
 
 class Response(HarType):
@@ -175,8 +176,9 @@ class Response(HarType):
             self.headers.append(Header(header))
         self.content = Content(data["content"]) if data["content"] != {} else None
         self.redirectURL = data["redirectURL"]
-        self.headersSize = data.get("headersSize", -1)
+        self.headersSize = data["headersSize"]
         self.bodySize = data["bodySize"]
+        self.totalSize = self.headersSize + self.bodySize if self.headersSize != -1 else None
 
 
 class Cookie(HarType):
