@@ -25,7 +25,7 @@ class HarParsingError(BaseException):
     pass
 
 
-class SimpleHarType:
+class VersionHarType:
 
     def __init__(self, data):
         self.name = data["name"]
@@ -36,11 +36,22 @@ class SimpleHarType:
         return f"{type(self).__name__}\n\t{self.name=}\n\t{self.version=}\n\t{self.comment=}"
 
 
-class Creator(SimpleHarType):
+class SimpleHarType:
+
+    def __init__(self, data):
+        self.name = data["name"]
+        self.value = data["value"]
+        self.comment = data["comment"] if "comment" in data.keys() else None
+
+    def __str__(self):
+        return f"{type(self).__name__}\n\t{self.name=}\n\t{self.value=}\n\t{self.comment=}"
+
+
+class Creator(VersionHarType):
     pass
 
 
-class Browser(SimpleHarType):
+class Browser(VersionHarType):
     pass
 
 
@@ -50,7 +61,7 @@ class Page:
         self.startedDateTime = data["startedDateTime"]
         self.id = data["id"]
         self.title = data["title"]
-        self.pageTimings = PageTimings(data["pageTimings"])
+        self.pageTimings = PageTimings(data["pageTimings"]) if data["pageTimings"] != {} else None
         self.comment = data["comment"] if "comment" in data.keys() else None
 
     def __str__(self):
@@ -60,21 +71,40 @@ class Page:
 class PageTimings:
 
     def __init__(self, data):
-        self.onContentLoad = data["onContentLoad"] if "onContentLoad" in data.keys() else None
-        self.onLoad = data["onLoad"] if "onLoad" in data.keys() else None
+        self.onContentLoad = data["onContentLoad"] if "onContentLoad" in data.keys() else -1
+        self.onLoad = data["onLoad"] if "onLoad" in data.keys() else -1
         self.comment = data["comment"] if "comment" in data.keys() else None
 
 
 class Timings:
 
     def __init__(self, data):
-        pass
+        self.blocked = data["blocked"] if "blocked" in data.keys() else -1
+        self.dns = data["dns"] if "dns" in data.keys() else -1
+        self.connect = data["connect"] if "connect" in data.keys() else -1
+        self.send = data["send"]
+        self.wait = data["wait"]
+        self.receive = data["receive"]
+        self.ssl = data["ssl"] if "ssl" in data.keys() else -1
+        self.comment = data["comment"] if "comment" in data.keys() else None
+
+
+class CacheState:
+
+    def __init__(self, data):
+        self.expires = data["expires"] if "expires" in data.keys() else None
+        self.lastAccess = data["lastAccess"]
+        self.eTag = data["eTag"]
+        self.hitCount = data["hitCount"]
+        self.comment = data["comment"]
 
 
 class Cache:
 
     def __init__(self, data):
-        pass
+        self.beforeRequest = CacheState(data["beforeRequest"]) if "beforeRequest" in data.keys() else None
+        self.afterRequest = CacheState(data["afterRequest"]) if "afterRequest" in data.keys() else None
+        self.comment = data["comment"] if "comment" in data.keys() else None
 
 
 class Entry:
@@ -86,7 +116,7 @@ class Entry:
         self.time = data["time"]
         self.request = Request(data["request"])
         self.response = Response(data["response"])
-        self.timings = Timings(data["timings"])
+        self.timings = Timings(data["timings"]) if data["timings"] != {} else None
         self.serverIPAddress = data["serverIPAddress"] if "serverIPAddress" in data.keys() else None
         self.connection = data["connection"] if "connection" in data.keys() else None
         self.comment = data["comment"] if "comment" in data.keys() else None
@@ -148,12 +178,8 @@ class Cookie:
         self.comment = data["comment"] if "comment" in data.keys() else None
 
 
-class Header:
-
-    def __init__(self, data):
-        self.name = data["name"]
-        self.value = data["value"]
-        self.comment = data["comment"] if "comment" in data.keys() else None
+class Header(SimpleHarType):
+    pass
 
 
 class queryString(SimpleHarType):
