@@ -55,7 +55,6 @@ class SimpleHarType(HarType):
         super().__init__(data)
         self.name = data["name"]
         self.value = data["value"]
-        self.comment = data["comment"] if "comment" in data.keys() else None
 
     def __str__(self):
         return f"{type(self).__name__}\n\t{self.name=}\n\t{self.value=}\n\t{self.comment=}"
@@ -86,28 +85,28 @@ class PageTimings(HarType):
 
     def __init__(self, data):
         super().__init__(data)
-        self.onContentLoad = data["onContentLoad"] if "onContentLoad" in data.keys() else -1
-        self.onLoad = data["onLoad"] if "onLoad" in data.keys() else -1
+        self.onContentLoad = data.get("onContentLoad", -1)
+        self.onLoad = data.get("onLoad", -1)
 
 
 class Timings(HarType):
 
     def __init__(self, data):
         super().__init__(data)
-        self.blocked = data["blocked"] if "blocked" in data.keys() else -1
-        self.dns = data["dns"] if "dns" in data.keys() else -1
-        self.connect = data["connect"] if "connect" in data.keys() else -1
+        self.blocked = data.get("blocked", -1)
+        self.dns = data.get("dns", -1)
+        self.connect = data.get("connect", -1)
         self.send = data["send"]
         self.wait = data["wait"]
         self.receive = data["receive"]
-        self.ssl = data["ssl"] if "ssl" in data.keys() else -1
+        self.ssl = data.get("ssl", -1)
 
 
 class CacheState(HarType):
 
     def __init__(self, data):
         super().__init__(data)
-        self.expires = data["expires"] if "expires" in data.keys() else None
+        self.expires = data.get("expires")
         self.lastAccess = data["lastAccess"]
         self.eTag = data["eTag"]
         self.hitCount = data["hitCount"]
@@ -117,23 +116,24 @@ class Cache(HarType):
 
     def __init__(self, data):
         super().__init__(data)
-        self.beforeRequest = CacheState(data["beforeRequest"]) if "beforeRequest" in data.keys() else None
-        self.afterRequest = CacheState(data["afterRequest"]) if "afterRequest" in data.keys() else None
+        data_keys = data.keys()
+        self.beforeRequest = CacheState(data["beforeRequest"]) if "beforeRequest" in data_keys else None
+        self.afterRequest = CacheState(data["afterRequest"]) if "afterRequest" in data_keys else None
 
 
 class Entry(HarType):
 
     def __init__(self, data):
         super().__init__(data)
-        self.pageref = data["pageref"] if "pageref" in data.keys() else None
+        self.pageref = data.get("pageref")
         self.startedDateTime = data["startedDateTime"]
         self.time = data["time"]
         self.request = Request(data["request"])
         self.response = Response(data["response"])
-        self.cache = Cache(data["response"]) if data["response"] != {} else None
+        self.cache = Cache(data["cache"]) if data["cache"] != {} else None
         self.timings = Timings(data["timings"]) if data["timings"] != {} else None
-        self.serverIPAddress = data["serverIPAddress"] if "serverIPAddress" in data.keys() else None
-        self.connection = data["connection"] if "connection" in data.keys() else None
+        self.serverIPAddress = data.get("serverIPAddress")
+        self.connection = data.get("connection")
 
 
 class Request(HarType):
@@ -173,9 +173,9 @@ class Response(HarType):
         self.headers = []
         for header in data["headers"]:
             self.headers.append(Header(header))
-        self.content = Content(data["content"])
+        self.content = Content(data["content"]) if data["content"] != {} else None
         self.redirectURL = data["redirectURL"]
-        self.headersSize = data["headersSize"] if "headersSize" in data.keys() else None
+        self.headersSize = data.get("headersSize", -1)
         self.bodySize = data["bodySize"]
 
 
@@ -185,11 +185,11 @@ class Cookie(HarType):
         super().__init__(data)
         self.name = data["name"]
         self.value = data["value"]
-        self.path = data["path"] if "path" in data.keys() else None
-        self.domain = data["domain"] if "domain" in data.keys() else None
-        self.expires = data["expires"] if "expires" in data.keys() else None
-        self.httpOnly = data["httpOnly"] if "httpOnly" in data.keys() else None
-        self.secure = data["secure"] if "secure" in data.keys() else None
+        self.path = data.get("path")
+        self.domain = data.get("domain")
+        self.expires = data.get("expires")
+        self.httpOnly = data.get("httpOnly")
+        self.secure = data.get("secure")
 
 
 class Header(SimpleHarType):
@@ -204,11 +204,11 @@ class Content(HarType):
 
     def __init__(self, data):
         super().__init__(data)
-        self.size = data["size"] if "size" in data.keys() else None
-        self.compression = data["compression"] if "compression" in data.keys() else None
-        self.mimeType = data["mimeType"] if "mimeType" in data.keys() else None
-        self.text = data["text"] if "text" in data.keys() else None
-        self.encoding = data["encoding"] if "encoding" in data.keys() else None
+        self.size = data.get("size")
+        self.compression = data.get("compression")
+        self.mimeType = data.get("mimeType")
+        self.text = data.get("text")
+        self.encoding = data.get("encoding")
 
     def decode(self):
         if self.encoding == "base64":
@@ -235,10 +235,10 @@ class Params(HarType):
 
     def __init__(self, data):
         super().__init__(data)
-        self.name = data["name"] if "name" in data.keys() else None
-        self.value = data["value"] if "value" in data.keys() else None
-        self.fileName = data["fileName"] if "fileName" in data.keys() else None
-        self.contentType = data["contentType"] if "contentType" in data.keys() else None
+        self.name = data["name"]
+        self.value = data.get("value")
+        self.fileName = data.get("fileName")
+        self.contentType = data.get("contentType")
 
 
 class HarReader:
@@ -291,4 +291,3 @@ class HarReader:
                 })
 
         return media
-
