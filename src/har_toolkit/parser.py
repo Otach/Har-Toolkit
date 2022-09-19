@@ -16,7 +16,6 @@
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
-import json
 from .har_objects import (
     Browser,
     Creator,
@@ -26,9 +25,9 @@ from .har_objects import (
 )
 
 
-class HarReader:
+class Har:
 
-    def __init__(self, filename):
+    def __init__(self, data):
 
         self.version = None
         self.creator = None
@@ -37,11 +36,8 @@ class HarReader:
         self.entries = []
         self.comment = None
 
-        with open(filename, 'rb') as har_file:
-            _data = json.load(har_file)
-
         try:
-            self._parse(_data["log"])
+            self._parse(data["log"])
         except Exception:
             raise HarParsingError
 

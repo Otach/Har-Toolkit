@@ -2,3 +2,7 @@
 
 class HarParsingError(BaseException):
     pass
+
+
+class HarFileError(BaseException):
+    pass

@@ -3,7 +3,7 @@ from .bases import HarType
 from .cookie import Cookie
 from .header import Header
 from .post_data import PostData
-from urllib3.parse import urlparse
+from urllib.parse import urlparse
 
 
 class Request(HarType):

@@ -16,7 +16,7 @@ import har_toolkit
 To read and parse a HAR file:
 ```
 import har_toolkit
-har = har_toolkit.HarReader("<path/to/har_file>")
+har = har_toolkit.read_har_file("<path/to/har_file>")
 ```
 This will return a HarReader object with the contents of the file parsed according to [this W3C document](https://w3c.github.io/web-performance/specs/HAR/Overview.html)
 
