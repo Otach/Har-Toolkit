@@ -20,4 +20,4 @@ classifiers = [
 ]
 
 [project.urls]
-"Homepage" = "https://git.swingproxy.com/mason/hartoolkit"
+"Homepage" = "https://github.com/Otach/Har-Toolkit.git"
