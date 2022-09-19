@@ -23,7 +23,9 @@ class Content(HarType):
     def decode(self):
         if self.encoding == "base64":
             self.text = b64decode(self.text)
-        else:
-            # Nothing to decode
-            pass
+
+        # Convert the text to utf8 bytes
+        if isinstance(self.text, str):
+            self.text = self.text.encode('utf8')
+
         return self
