@@ -54,7 +54,7 @@ class Har:
     def __str__(self):
         return f"Version\n\t{self.version}\n{self.creator}\n{self.browser}\nPages\n\t{len(self.pages)} pages\nEntries\n\t{len(self.entries)} entries\nComment\n\t{self.comment}"
 
-    def extract_images(self):
+    def extract_image_entries(self):
         """Looks through the entries and returns an array of image data.
 
         The image data is a dictionary with two entries:
@@ -64,7 +64,11 @@ class Har:
 
         media = []
         for entry in self.entries:
-            if (entry.response.content.mimeType is not None) and ("image/" in entry.response.content.mimeType) and (entry.response.content.text is not None):
+            if (entry.response.content is not None) and \
+               (entry.response.content.mimeType is not None) and \
+               ("image/" in entry.response.content.mimeType) and \
+               (entry.response.content.text is not None):
+
                 content = entry.response.content.decode()
                 media.append({
                     "filename": entry.request.parse_url().path.split("/")[-1],
