@@ -22,3 +22,6 @@ class Response(HarType):
         self.redirectURL = data["redirectURL"]
         self.headersSize = data.get("headersSize", -1)
         self.bodySize = data["bodySize"]
+
+    def __str__(self):
+        return str(vars(self))

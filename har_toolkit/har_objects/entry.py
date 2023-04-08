@@ -19,3 +19,6 @@ class Entry(HarType):
         self.timings = Timings(data["timings"]) if data["timings"] != {} else None
         self.serverIPAddress = data.get("serverIPAddress")
         self.connection = data.get("connection")
+
+    def __str__(self):
+        return str(vars(self))

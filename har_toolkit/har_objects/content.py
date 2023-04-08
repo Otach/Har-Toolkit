@@ -15,7 +15,7 @@ class Content(HarType):
         self.charset = self._extract_charset()
 
     def _extract_charset(self):
-        if "; charset=" in self.mimeType:
+        if self.mimeType is not None and "; charset=" in self.mimeType:
             return self.mimeType.split("=")[-1]
         else:
             return None
@@ -29,3 +29,16 @@ class Content(HarType):
             self.text = self.text.encode('utf8')
 
         return self
+
+    def __str__(self):
+        return str(dict(
+            size=self.size,
+            compression=self.compression,
+            mimeType=self.mimeType,
+            encoding=self.encoding,
+            charset=self.charset
+        ))
+
+    def __repr__(self):
+        return str(self)
+

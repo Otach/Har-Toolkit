@@ -15,19 +15,12 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
-from .har_objects import (
-    Browser,
-    Creator,
-    Entry,
-    Page,
-    HarParsingError
-)
+from .har_objects import Browser, Creator, Entry, Page, HarParsingError
+from .media import image
 
 
 class Har:
-
-    def __init__(self, data):
+    def __init__(self, data: dict) -> None:
 
         self.version = None
         self.creator = None
@@ -52,27 +45,36 @@ class Har:
             self.entries.append(Entry(entry))
 
     def __str__(self):
-        return f"Version\n\t{self.version}\n{self.creator}\n{self.browser}\nPages\n\t{len(self.pages)} pages\nEntries\n\t{len(self.entries)} entries\nComment\n\t{self.comment}"
+        return f"""Version\n\t{self.version}\n{self.creator}\n{self.browser}\nPages\n\t{len(self.pages)} pages\nEntries\n\t{len(self.entries)} entries\nComment\n\t{self.comment}"""
 
     def extract_image_entries(self):
-        """Looks through the entries and returns an array of image data.
-
-        The image data is a dictionary with two entries:
-            'filename' - The name of the file from the request url
-            'data' - The Content object of the Response for an image request
-        """
+        """Looks through the entries and returns an array of ImageEntrys."""
 
         media = []
         for entry in self.entries:
-            if (entry.response.content is not None) and \
-               (entry.response.content.mimeType is not None) and \
-               ("image/" in entry.response.content.mimeType) and \
-               (entry.response.content.text is not None):
-
-                content = entry.response.content.decode()
-                media.append({
-                    "filename": entry.request.parse_url().path.split("/")[-1],
-                    "data": content
-                })
+            if (
+                (entry.response.content is not None)
+                and (entry.response.content.mimeType is not None)
+                and ("image/" in entry.response.content.mimeType)
+                and (entry.response.content.text is not None)
+            ):
+                try:
+                    media.append(image.ImageEntry(entry))
+                except Exception:
+                    pass
 
         return media
+
+    def extract_video_entries(self):
+        media = []
+        for entry in self.entries:
+            if (
+                (entry.response.content is not None)
+                and (entry.response.content.mimeType is not None)
+                and ("video/" in entry.response.content.mimeType)
+                and (entry.response.content.text is not None)
+            ):
+                media.append(entry)
+
+        return media
+

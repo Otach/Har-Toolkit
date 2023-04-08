@@ -34,3 +34,6 @@ class SimpleHarType(HarType):
 
     def __str__(self):
         return f"{type(self).__name__}\n\t{self.name=}\n\t{self.value=}\n\t{self.comment=}"
+
+    def __repr__(self):
+        return f"{type(self).__name__}\n\t{self.name=}\n\t{self.value=}\n\t{self.comment=}"

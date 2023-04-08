@@ -5,11 +5,11 @@ import json
 import os
 
 
-def read_har_file(filename):
+def read_har_file(filename: str) -> Har:
     if not os.path.exists(filename):
         raise HarFileError(f"{filename} does not exist.")
 
-    with open(filename, 'rb') as har_file:
+    with open(filename, "rb") as har_file:
         data = json.load(har_file)
 
     return Har(data)
