@@ -16,7 +16,7 @@
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from .har_objects import Browser, Creator, Entry, Page, HarParsingError
-from .media import image
+from .media import image, video
 
 
 class Har:
@@ -65,7 +65,8 @@ class Har:
 
         return media
 
-    def extract_video_entries(self):
+    def extract_videos(self):
+        """Looks through the entries and returns an array of Videos."""
         media = []
         for entry in self.entries:
             if (
@@ -74,7 +75,6 @@ class Har:
                 and ("video/" in entry.response.content.mimeType)
                 and (entry.response.content.text is not None)
             ):
-                media.append(entry)
+                media.append(video.VideoEntry(entry))
 
         return media
-

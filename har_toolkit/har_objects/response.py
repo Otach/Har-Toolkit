@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 from .bases import HarType
-from .cookie import Cookie
-from .header import Header
 from .content import Content
 
 
@@ -12,12 +10,12 @@ class Response(HarType):
         self.status = data["status"]
         self.statusText = data["statusText"]
         self.httpVersion = data["httpVersion"]
-        self.cookies = []
+        self.cookies = {}
         for cookie in data["cookies"]:
-            self.cookies.append(Cookie(cookie))
-        self.headers = []
+            self.cookies[cookie["name"]] = cookie["value"]
+        self.headers = {}
         for header in data["headers"]:
-            self.headers.append(Header(header))
+            self.headers[header["name"]] = header["value"]
         self.content = Content(data["content"]) if data["content"] != {} else None
         self.redirectURL = data["redirectURL"]
         self.headersSize = data.get("headersSize", -1)
